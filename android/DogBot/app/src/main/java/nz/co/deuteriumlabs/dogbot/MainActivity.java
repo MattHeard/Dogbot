@@ -3,6 +3,8 @@ package nz.co.deuteriumlabs.dogbot;
 import android.app.Activity;
 import android.content.Context;
 import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.Menu;
@@ -15,9 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements SensorEventListener {
 
     private SensorManager sensorManager;
+    private Sensor lightSensor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,6 +28,9 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+
+        lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+
         List<Sensor> sensors = sensorManager.getSensorList(Sensor.TYPE_ALL);
 
         ArrayAdapter arrayAdapter;
@@ -55,5 +61,28 @@ public class MainActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        float lux = event.values[0];
+        TextView textView = (TextView) findViewById(R.id.light_val);
+        textView.setText("Light: " + Float.toString(lux) + " lux");
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) { }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        sensorManager.registerListener(this, lightSensor, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        sensorManager.unregisterListener(this);
     }
 }
