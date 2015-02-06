@@ -1,6 +1,9 @@
 package nz.co.deuteriumlabs.dogbot;
 
 import android.app.Activity;
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,16 +17,18 @@ import java.util.List;
 
 public class MainActivity extends Activity {
 
+    private SensorManager sensorManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        List<String> strings = new ArrayList<String>();
-        strings.add("Hello sensor");
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        List<Sensor> sensors = sensorManager.getSensorList(Sensor.TYPE_ALL);
 
-        ArrayAdapter<String> arrayAdapter;
-        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, strings);
+        ArrayAdapter arrayAdapter;
+        arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, sensors);
 
         ListView listView = (ListView) findViewById(R.id.sensor_list);
         listView.setAdapter(arrayAdapter);
