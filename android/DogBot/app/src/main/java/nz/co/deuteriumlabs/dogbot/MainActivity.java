@@ -4,6 +4,12 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class MainActivity extends Activity {
@@ -12,6 +18,15 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        List<String> strings = new ArrayList<String>();
+        strings.add("Hello sensor");
+
+        ArrayAdapter<String> arrayAdapter;
+        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, strings);
+
+        ListView listView = (ListView) findViewById(R.id.sensor_list);
+        listView.setAdapter(arrayAdapter);
     }
 
 
