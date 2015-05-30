@@ -2,6 +2,8 @@
 
 import struct
 import sys
+import threading
+import time
 import usb
 
 SAMSUNG_VENDOR_ID = 0x04e8
@@ -72,16 +74,85 @@ def requestAccessoryMode(dev):
     index = 0
     data = None
     dev.ctrl_transfer(request_type, request, val, index, data)
+    print('Requesting accessory mode.')
+    time.sleep(1)
 
 def putInAccessoryMode(dev):
     determineProtocolSupport(dev)
     identifyDogbot(dev)
     requestAccessoryMode(dev)
 
+GOOGLE_VENDOR_ID = 0x18D1
+GOOGLE_PRODUCT_ID = 0x2D01
+
+def findDeviceInAccessoryMode():
+    dev = usb.core.find(
+            idVendor=GOOGLE_VENDOR_ID,
+            idProduct=GOOGLE_PRODUCT_ID)
+    if dev is None:
+        print('Face coulde not be put into accessory mode. Exiting.')
+        sys.exit()
+    else:
+        print('The face is now in accessory mode.')
+        time.sleep(1)
+        return dev
+
+def prepareIO(dev):
+    print('Hello prepareIO')
+    dev.set_configuration()
+    time.sleep(1)
+    cfg = dev.get_active_configuration()
+    intf_num = cfg[(0,0)].bInterfaceNumber
+    intf = usb.util.find_descriptor(cfg, bInterfaceNumber=intf_num)
+    global ep_out
+    ep_out = usb.util.find_descriptor(
+            intf,
+            custom_match = \
+            lambda e: \
+                usb.util.endpoint_direction(e.bEndpointAddress) == \
+                usb.util.ENDPOINT_OUT
+    )
+    global ep_in
+    ep_in = usb.util.find_descriptor(
+            intf,
+            custom_match = \
+            lambda e: \
+                usb.util.endpoint_direction(e.bEndpointAddress) == \
+                usb.util.ENDPOINT_IN
+    )
+
+def runIO():
+    writer_thread = threading.Thread(target = writer, args = (ep_out, ))
+    writer_thread.start()
+    length = -1
+    while True:
+        try:
+            size = 1
+            data = ep_in.read(size, timeout = 0)
+            print("incoming message: '%d'" % data[0])
+        except usb.core.USBError:
+            print("failed to send IN transfer")
+            break
+    writer_thread.join()
+    print("exiting application")
+ 
+def writer(ep_out):
+    while True:
+        try:
+            length = ep_out.write([0], timeout = 0)
+            print("%d bytes written" % length)
+            time.sleep(0.5)
+        except usb.core.USBError:
+            print("error in writer thread")
+            break
+
 def main():
     print('Attempting to connect to the face.')
     dev = findDevice()
     putInAccessoryMode(dev)
+    dev = findDeviceInAccessoryMode()
+    prepareIO(dev)
+    runIO()
 
 if __name__ == '__main__':
     main()
