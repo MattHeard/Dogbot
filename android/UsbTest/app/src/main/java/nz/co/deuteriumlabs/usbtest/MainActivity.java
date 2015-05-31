@@ -17,7 +17,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 
-public class MainActivity extends Activity implements Runnable {
+public class MainActivity extends Activity {
 
     private static final String TAG = "MainActivity";
     UsbAccessory accessory;
@@ -44,7 +44,6 @@ public class MainActivity extends Activity implements Runnable {
         if (accessory != null) {
             identifyAccessory(accessory);
             enableHelloButton();
-            openAccessory();
         }
     }
 
@@ -57,51 +56,5 @@ public class MainActivity extends Activity implements Runnable {
         String model_name = accessory.getModel();
         TextView accessoryModelView = (TextView) findViewById(R.id.accessory_model);
         accessoryModelView.setText(model_name);
-    }
-
-    private void openAccessory() {
-        Log.d(TAG, "openAccessory: " + accessory);
-        fileDescriptor = usbManager.openAccessory(accessory);
-        if (fileDescriptor != null) {
-            FileDescriptor fd = fileDescriptor.getFileDescriptor();
-            inputStream = new FileInputStream(fd);
-            outputStream = new FileOutputStream(fd);
-            Thread thread = new Thread(null, this, "AccessoryThread");
-            thread.start();
-        }
-    }
-
-    /**
-     * Starts executing the active part of the class' code. This method is
-     * called when a thread is started that has been created with a class which
-     * implements {@code Runnable}.
-     */
-    @Override
-    public void run() {
-        writeHelloToOutputStream();
-        closeOutputStream();
-    }
-
-    private void writeHelloToOutputStream() {
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        final String hello = "hello dogbot";
-        try {
-            outputStream.write(hello.getBytes());
-            outputStream.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void closeOutputStream() {
-        try {
-            outputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }
