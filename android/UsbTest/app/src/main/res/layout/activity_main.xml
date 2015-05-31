@@ -22,4 +22,11 @@
         android:layout_gravity="center_horizontal"
         android:enabled="false" />
 
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:text=":D"
+        android:id="@+id/desc"
+        android:layout_gravity="center_horizontal" />
+
 </LinearLayout>
